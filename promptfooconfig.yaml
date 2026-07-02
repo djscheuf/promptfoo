@@ -49,6 +49,12 @@ providers:
     config:
       model: 'SWE-1.6'
 
+  # Devin CLI provider — file-based (fixes ENAMETOOLONG on Windows for prompts >32k)
+  #- id: 'file://devinProvider.js'
+  #  label: 'Devin SWE-1.6 (file provider)'
+  #  config:
+  #    model: 'SWE-1.6'
+
   # Devin CLI provider — For Testing a Second Model
   # MUST Use Label to differentiate providers with same ID (first in wins otherwise)
   # - id: 'exec: node ./devin.js'
