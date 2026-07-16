@@ -15,6 +15,9 @@ class DevinProvider {
 
   async callApi(prompt, context, options) {
     const model = this.config.model || 'SWE-1.6';
+    const forcePromptFile = this.config.forcePromptFile || false;
+    const trackTokens = this.config.trackTokens !== false; // default true
+    const promptFileSizeThreshold = this.config.promptFileSizeThreshold || 32000;
 
     let isGraderMode = false;
     try {
@@ -50,13 +53,31 @@ class DevinProvider {
       fullPrompt = prompt;
     }
 
-    const tmpFile = path.join(os.tmpdir(), `devin-prompt-${Date.now()}-${process.pid}.txt`);
-    const exportFile = path.join(os.tmpdir(), `devin-export-${Date.now()}-${process.pid}.json`);
+    const shouldUseFile = forcePromptFile || fullPrompt.length > promptFileSizeThreshold;
+    let tmpFile, exportFile;
+    
+    if (shouldUseFile) {
+      tmpFile = path.join(os.tmpdir(), `devin-prompt-${Date.now()}-${process.pid}.txt`);
+      fs.writeFileSync(tmpFile, fullPrompt, 'utf8');
+    }
+
+    if (trackTokens) {
+      exportFile = path.join(os.tmpdir(), `devin-export-${Date.now()}-${process.pid}.json`);
+    }
 
     try {
-      fs.writeFileSync(tmpFile, fullPrompt, 'utf8');
+      const args = ['-p', '--model', model];
+      
+      if (shouldUseFile) {
+        args.push('--prompt-file', tmpFile);
+      } else {
+        args.push('--', fullPrompt);
+      }
 
-      const args = ['-p', '--prompt-file', tmpFile, '--model', model, '--export', exportFile];
+      if (trackTokens) {
+        args.push('--export', exportFile);
+      }
+
       if (!isGraderMode) {
         args.push('--permission-mode', 'auto');
       }
@@ -74,14 +95,14 @@ class DevinProvider {
         child.stderr.on('data', (data) => { stderr += data; });
 
         child.on('error', (err) => {
-          resolve({ error: err.message, tokenUsage: parseTokenUsage(exportFile) });
+          resolve({ error: err.message, tokenUsage: trackTokens ? parseTokenUsage(exportFile) : undefined });
         });
 
         child.on('close', (code) => {
           if (code !== 0) {
-            resolve({ error: stdout || stderr || `devin exited with code ${code}`, tokenUsage: parseTokenUsage(exportFile) });
+            resolve({ error: stdout || stderr || `devin exited with code ${code}`, tokenUsage: trackTokens ? parseTokenUsage(exportFile) : undefined });
           } else {
-            resolve({ output: stdout, tokenUsage: parseTokenUsage(exportFile) });
+            resolve({ output: stdout, tokenUsage: trackTokens ? parseTokenUsage(exportFile) : undefined });
           }
         });
       });
@@ -89,8 +110,8 @@ class DevinProvider {
       return result;
     } finally {
       try {
-        fs.unlinkSync(tmpFile);
-        fs.unlinkSync(exportFile);
+        if (tmpFile) fs.unlinkSync(tmpFile);
+        if (exportFile) fs.unlinkSync(exportFile);
       } catch (e) {
         // Ignore cleanup errors
       }
