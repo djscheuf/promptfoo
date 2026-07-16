@@ -38,12 +38,12 @@ class DevinProvider {
         const systemMessage = messages.find(m => m.role === 'system');
         const userMessage = messages.find(m => m.role === 'user');
 
-        if (systemMessage && userMessage) {
-          systemMsg = systemMessage.content;
-          userMsg = userMessage.content;
-        } else {
-          throw new Error('Missing system or user message');
+        if (!systemMessage || !userMessage) {
+          throw new Error('Missing system or user message in grader mode');
         }
+
+        systemMsg = systemMessage.content;
+        userMsg = userMessage.content;
       } catch (e) {
         systemMsg = 'You are an evaluator. Respond with only valid JSON: {"pass": bool, "score": 0.0-1.0, "reason": "string"}';
         userMsg = prompt;
@@ -68,11 +68,6 @@ class DevinProvider {
     try {
       const args = ['-p', '--model', model];
       
-      if (shouldUseFile) {
-        args.push('--prompt-file', tmpFile);
-      } else {
-        args.push('--', fullPrompt);
-      }
 
       if (trackTokens) {
         args.push('--export', exportFile);
@@ -80,6 +75,12 @@ class DevinProvider {
 
       if (!isGraderMode) {
         args.push('--permission-mode', 'auto');
+      }
+
+      if (shouldUseFile) {
+        args.push('--prompt-file', tmpFile);
+      } else {
+        args.push('--', fullPrompt);
       }
 
       const result = await new Promise((resolve, reject) => {
@@ -102,7 +103,16 @@ class DevinProvider {
           if (code !== 0) {
             resolve({ error: stdout || stderr || `devin exited with code ${code}`, tokenUsage: trackTokens ? parseTokenUsage(exportFile) : undefined });
           } else {
-            resolve({ output: stdout, tokenUsage: trackTokens ? parseTokenUsage(exportFile) : undefined });
+
+            let output = stdout;
+            if (isGraderMode) {
+              const jsonMatch = output.match(/```json\s*([\s\S]*?)\s*```/);
+              if (jsonMatch) {
+                output = jsonMatch[1].trim();
+              }
+            }
+
+            resolve({ output, tokenUsage: trackTokens ? parseTokenUsage(exportFile) : undefined });
           }
         });
       });
