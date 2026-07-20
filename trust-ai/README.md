@@ -42,6 +42,7 @@ For example you can enable to use Claude Code commenting out the devin provider 
 ### Confirm your setup
 To confirm your setup is working, you can run the following command:
 ```bash
+# Run from the Repo Root
 npm run test trust-ai.config.yaml
 ```
 
@@ -50,14 +51,13 @@ You should see some lines about promptfoo running the trust-ai config file, and 
 
 ## In this Directory
 
-- `simple.config.yaml` - Simple promptfoo configuration  demonstrating deterministic evalus, and some basic LLM-as-judge evals for a stripped down "create-prd" prompt. Use this for a 'hello world' introduction to promptfoo, and to introduce the basic EDD loop. 
-- `advanced.config.yaml` - Advanced promptfoo configuration demonstrating more complex evaluations, meant for demonstrating the Load-Bearing Principle, and Model Economics.
-- `simple.prompt.md` - The simple prompt used in `simple.config.yaml`, follows a stripped down RTCC prompt structure for generating a PRD. 
-- `advanced.prompt.md` - The advanced prompt used in `advanced.config.yaml`, follows a more comprehensive RTCC prompt structure for generating a PRD, with some built in fluff for demonstrating the Load-Bearing Principle.
+- 'README.md' - This file
+- `simple.prompt.md` - The simple prompt that follows a stripped down RTCC prompt structure for generating a PRD. 
+- `advanced.prompt.md` - The advanced prompt that follows a more comprehensive RTCC prompt structure for generating a PRD, with some built in fluff for demonstrating the Load-Bearing Principle.
 
 ## How to run the Evals here
 
 ```bash
-npm run test ./trust-ai/simple.config.yaml
-npm run test ./trust-ai/advanced.config.yaml
+# Run from the Repo Root
+npm run test trust-ai.config.yaml
 ```
