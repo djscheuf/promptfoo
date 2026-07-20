@@ -131,4 +131,22 @@ tests:
         threshold: 0.7
         metric: non-functional-requirements
         weight: 1.50
+
+  # ========================================
+  # SCRIPT-BASED DETERMINISTIC EVALUATIONS
+  # ========================================
+  # These evaluations call functions exported from eval-script.js directly.
+  # Syntax: file://path/to/script.js:functionName
+  - vars:
+      request: 'I want to extend an existing pomodoro app to ring with a customizable chime when the timer expires, and be able to change the chimes for the completion of a pomodoro, completion of rest, and indication when it is time for a long break.'
+      max_functional_requirements: 5
+      max_non_functional_requirements: 3
+
+    description: 'PRD Format and Content Validation - Deterministic Script-based eval'
+    assert:
+      - type: javascript
+        value: file://./trust-ai/prd-check-script.js:hasPrdFormat
+      - type: javascript
+        value: file://./trust-ai/prd-check-script.js:hasSufficientFunctionalRequirements
+
 outputPath: trust-ai/results.html
