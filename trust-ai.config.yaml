@@ -139,9 +139,9 @@ tests:
   # Syntax: file://path/to/script.js:functionName
   - vars:
       request: 'I want to extend an existing pomodoro app to ring with a customizable chime when the timer expires, and be able to change the chimes for the completion of a pomodoro, completion of rest, and indication when it is time for a long break.'
-      max_functional_requirements: 5
-      max_non_functional_requirements: 3
-
+      assert_config:
+        - max_functional_requirements: 5
+        - max_non_functional_requirements: 3
     description: 'PRD Format and Content Validation - Deterministic Script-based eval'
     assert:
       - type: javascript

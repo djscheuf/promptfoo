@@ -42,7 +42,7 @@ const foundSections = expectedPRDSections.filter(section => {
 }
 
  function _createHeadingPattern(section) {
-  return new RegExp(`^#+\\s+${section}`, 'm');
+  return new RegExp(`^#+\\s+(?:\\d+(?:\\.\\d+){0,2}\\.\\s+)?${section}`, 'm');
 }
 
 function _getHeadingLevel(headingText) {
@@ -71,7 +71,12 @@ function _extractSection(output, section) {
 }
 
 function hasSufficientFunctionalRequirements(output, context) {
-    const maxFunctionalRequirements = context.vars.max_functional_requirements; // Map from promptfoo config
+
+    const maxFunctionalRequirements = context.vars.assert_config ?
+        context.vars.assert_config
+            .find(limit => limit.max_functional_requirements)?.max_functional_requirements 
+        : null; // Map from promptfoo config
+        
     if (!maxFunctionalRequirements) {
         return {
             pass: false,
