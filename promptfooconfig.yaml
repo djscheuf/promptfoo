@@ -18,7 +18,7 @@ defaultTest:
     # SPECIFY the Provider by the Label from the providers section.
     #
     # Devin CLI grader — ACTIVE
-    provider: 'SWE-1.6'
+    provider: 'Devin SWE-1.6'
     #
     # GitHub Copilot CLI grader
     # provider: 'GitHub Haiku'
