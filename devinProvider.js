@@ -101,18 +101,38 @@ class DevinProvider {
 function parseTokenUsage(exportFilePath) {
   try {
     const data = JSON.parse(fs.readFileSync(exportFilePath, 'utf8'));
-    const agentSteps = (data.steps || []).filter(s => s.source === 'agent');
-    let promptTokens = 0, completionTokens = 0;
-    for (const step of agentSteps) {
-      const m = step.metadata?.metrics;
-      if (m) {
-        promptTokens += (m.input_tokens || 0) + (m.cache_read_tokens || 0) + (m.cache_creation_tokens || 0);
-        completionTokens += (m.output_tokens || 0);
+
+    // Devin exports ATIF v1.7 transcripts. Token metrics live in step.metrics
+    // (standard ATIF) with prompt_tokens/completion_tokens, but older exports
+    // put them in step.metadata.metrics as input_tokens/output_tokens.
+    const allSteps = (data.steps || []);
+    const candidateSteps = allSteps.filter(s => s.source === 'agent' || s.source === 'model' || s.source === 'assistant');
+    const steps = candidateSteps.length > 0 ? candidateSteps : allSteps.filter(s => !s.metadata?.is_user_input);
+
+    let promptTokens = 0, completionTokens = 0, cachedTokens = 0, cacheCreationTokens = 0;
+    for (const step of steps) {
+      const m = step.metrics || step.metadata?.metrics || {};
+      if (m && Object.keys(m).length > 0) {
+        promptTokens += (m.prompt_tokens ?? m.input_tokens ?? 0) + (m.cache_read_input_tokens ?? m.cache_read_tokens ?? 0);
+        completionTokens += (m.completion_tokens ?? m.output_tokens ?? 0);
+        cachedTokens += (m.cached_tokens ?? m.cache_read_input_tokens ?? m.cache_read_tokens ?? 0);
+        cacheCreationTokens += (m.cache_creation_input_tokens ?? m.cache_creation_tokens ?? 0);
       }
     }
-    return { total: promptTokens + completionTokens, prompt: promptTokens, completion: completionTokens };
+
+    // Legacy fallback: include legacy metadata.metrics cache creation in prompt
+    // if no ATIF cache_creation_input_tokens was present.
+    promptTokens += cacheCreationTokens;
+
+    return {
+      total: promptTokens + completionTokens,
+      prompt: promptTokens,
+      completion: completionTokens,
+      cached: cachedTokens,
+      numRequests: 1,
+    };
   } catch {
-    return { total: 0, prompt: 0, completion: 0 };
+    return { total: 0, prompt: 0, completion: 0, cached: 0, numRequests: 1 };
   }
 }
 
