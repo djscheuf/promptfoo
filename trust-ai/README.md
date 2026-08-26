@@ -58,5 +58,12 @@ You should see some lines about promptfoo running the trust-ai config file, and 
 
 ```bash
 npm run test trust-ai.config.yaml
-npm run test:verbose trust-ai.config.yaml // logs detailed output to test.log
+npm run view // opens the results in a web browser
 ```
+
+## Troubleshooting
+
+If you encounter issues:
+1. Check that your agentic AI tool is properly configured (e.g., Devin/Claude Code is installed and authenticated)
+2. Verify the config file has the correct provider settings (e.g., you have a `provider` clause for the AI tool you're using, and the `defaultTest` uses that provider)
+3. Run with verbose mode to see detailed output in "test.log": `npm run test:verbose trust-ai.config.yaml`
